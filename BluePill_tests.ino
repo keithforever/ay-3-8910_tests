@@ -1,5 +1,15 @@
 //program for controlling AY-3-8910 Programmable Sound Generator
+//#define timer Timer5
+
+//#define TIMER5_CH1_PIN PA0
+
 HardwareTimer timer(2); // defining timer 2. Channel1 on PA0
+
+//https://www.stm32duino.com/viewtopic.php?t=3242
+//https://www.stm32duino.com/viewtopic.php?t=1381
+//http://docs.leaflabs.com/static.leaflabs.com/pub/leaflabs/maple-docs/0.0.12/lang/api/hardwaretimer.html#lang-hardwaretimer
+//https://librambutan.readthedocs.io/en/latest/lang/api/hardwaretimer.html#project0class_hardware_timer
+
 
 #define BDIR PB7 
 #define BC1 PB4
@@ -22,9 +32,18 @@ HardwareTimer timer(2); // defining timer 2. Channel1 on PA0
 void setup() {
   // initialize digital pin led as an output.
   pinMode(led, OUTPUT);
+  pinMode(PA0, PWM);
 
   //initialize 1 - 2mhz clock for PSG
-  clock_setup();
+  //clock_setup();
+  //clock needs to be 1 mhz to 2 mhz with 50% duty cycle 
+  timer.pause();
+  timer.setMode(1, TIMER_PWM);
+  timer.setPeriod(1000000);
+  //timer.setChannel1Mode(TIMER_PWM);
+  //timer.setCompare1(1);
+  timer.refresh();
+  timer.resume();
 
   //initialize bus control pins and set to INACTIVE mode
   pinMode(BC2, OUTPUT);
@@ -33,6 +52,7 @@ void setup() {
   digitalWrite(BDIR, LOW);
   digitalWrite(BC1, LOW);
   digitalWrite(BC2, HIGH);
+  //example();
 }
 
 // the loop function runs over and over again forever
@@ -43,8 +63,8 @@ void loop() {
   delay(1000);                       // wait for a second
 
   //Example 
-  //write_reg(6);
-  //write_reg_value(8); //8 would be 00001000
+  example();
+
 
 }
 void bus_control(int function){
@@ -270,13 +290,33 @@ uint8_t read_reg_value(){
 void clock_setup(){
   //clock needs to be 1 mhz to 2 mhz with 50% duty cycle 
   timer.pause();
-  timer.setPeriod(1);
-  timer.setChannel1Mode(TIMER_OUTPUT_COMPARE);
-  timer.setCompare(TIMER_CH1, 1);
+  timer.setPeriod(2000);
+  timer.setChannel1Mode(TIMER_PWM);
+  //timer.setCompare1(1);
   timer.refresh();
   timer.resume();
   
-}
+}/*
+void clockTest(){
+  //pinMode(TIMER5_CH1_PIN, PWM);
+  //gpio_set_af_mode(TIMER5_CH1_PIN, 2);
+
+    timer.pause();
+    timer.setPeriod(20000);
+    timer.setCompare(TIMER_CH1, 1); // 50% duty cycle: 24ns low + 24ns high
+    timer.refresh();
+    timer.resume();
+}*/
 void resetPSG(){
   //set reset pih LOW to set all registers to zero
+}
+void example(){
+  write_reg(1);
+  write_reg_value(8); //8 would be 00001000
+
+  write_reg(0);
+  write_reg_value(45);
+  
+  write_reg(10);
+  write_reg_value(15);
 }
